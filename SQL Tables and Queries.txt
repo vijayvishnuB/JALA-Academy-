@@ -1,0 +1,152 @@
+CREATE TABLE Salespeople( 
+    snum INT NOT NULL PRIMARY KEY, 
+    sname varchar(50) NOT NULL, 
+    city varchar(50), 
+    comm FLOAT 
+);
+INSERT INTO Salespeople VALUES
+    (1001,'Peel','London',0.12),
+    (1002,'Serres','San Jose',0.13),
+    (1004,'Motika','London',0.11),
+    (1007,'Rafkin','Barcelona',0.15),
+    (1003,'Axelrod','New york',0.1);
+    
+    
+CREATE TABLE Customers (
+    cnum INT NOT NULL,
+    cname VARCHAR(50) NOT NULL,
+    city VARCHAR(50),
+    Rating INT, 
+    snum INT NOT NULL,
+    CONSTRAINT PK_Customers_cnum PRIMARY KEY(cnum),
+    CONSTRAINT FK_Customers_snum FOREIGN KEY(snum) REFERENCES Salespeople(snum)
+);
+INSERT INTO Customers VALUES 
+    (2001,'Hoffman','London',100,1001),
+    (2002,'Giovanne','Rome',200,1003),
+    (2003,'Liu','San Jose',300,1002),
+    (2004,'Grass','Brelin',100,1002),
+    (2006,'Clemens','London',300,1007),
+    (2007,'Pereira','Rome',100,1004);
+    
+CREATE TABLE Orders (
+   Onum INT NOT NULL,
+   AMT FLOAT NOT NULL,
+   Odate DATE NOT NULL,
+   cnum INT NOT NULL,
+   snum INT NOT NULL,
+   CONSTRAINT PK_Orders_Onum PRIMARY KEY(Onum),
+   CONSTRAINT FK_Orders_cnum FOREIGN KEY(cnum) REFERENCES Customers(cnum),
+   CONSTRAINT FK_Orders_snum FOREIGN KEY(snum) REFERENCES Salespeople(snum)
+);
+INSERT INTO Orders VALUES
+    (3001,18.69,'03-OCT-94',2004,1007),
+    (3003,767.19,'03-OCT-94',2001,1001),
+    (3002,1900.10,'03-OCT-94',2007,1004),
+    (3005,5160.45,'03-OCT-94',2003,1002),
+    (3006,1098.16,'04-OCT-94',2004,1007),
+    (3009,1713.23,'04-OCT-94',2002,1003),
+    (3007,75.75,'05-OCT-94',2004,1002),
+    (3008,4723.00,'05-OCT-94',2006,1001),
+    (30010,1309.95,'06-OCT-94',2004,1002),
+    (30011,9891.88,'06-OCT-94',2006,1001);
+    
+SELECT snum, snum, city, comm FROM Salespeople;
+
+SELECT DISTINCT snum FROM Orders;
+
+SELECT snum, comm FROM Salespeople WHERE city = 'London';
+
+SELECT cname FROM customers WHERE Rating = 100;
+
+SELECT Onum, AMT, Odate FROM Orders;
+
+SELECT cname, city, Rating FROM customers WHERE city = 'San Jose' AND Rating > 200;
+
+SELECT cname, city, Rating FROM customers WHERE city = 'San Jose' OR Rating > 200;
+
+SELECT * FROM Orders WHERE AMT > 1000;
+
+SELECT sname, city, comm FROM Salespeople WHERE City = 'London' AND comm > 0.10;
+
+SELECT cname, city, Rating FROM customers WHERE Rating <= 100 OR city = 'Rome';
+
+SELECT sname, city FROM Salespeople WHERE city IN ('Barcelona','london');
+
+SELECT sname, comm FROM Salespeople WHERE comm > 0.10 AND comm < 0.12;
+
+SELECT cname, city FROM customers WHERE city IS NULL;
+
+SELECT * FROM Orders WHERE Odate IN ('03-OCT-94','04-OCT-94');
+
+SELECT cname FROM Customers, Orders WHERE Orders.cnum = Customers.cnum AND Orders.snum IN( SELECT snum FROM Salespeople WHERE sname IN ('Peel','Motika'));
+
+SELECT cname FROM Customers WHERE cname LIKE 'A%' OR cname LIKE 'B%';
+
+SELECT * FROM Orders WHERE AMT != 0 OR AMT IS NOT NULL;
+
+SELECT COUNT(DISTINCT snum) AS 'salespeople currently listing orders' FROM Orders;
+
+SELECT snum, Odate, MAX(AMT) AS 'Largest order' FROM Orders GROUP BY Odate, snum ORDER BY Odate,snum;
+
+SELECT snum, Odate, MAX(AMT) AS 'Largest order' FROM Orders WHERE AMT > 3000 GROUP BY Odate, snum ORDER BY Odate, snum;
+
+SELECT Odate, AMT, snum, cnum FROM Orders WHERE AMT = ( SELECT MAX(AMT) FROM Orders);
+
+SELECT COUNT(*) AS 'Orders on Oct 3rd' FROM Orders WHERE Odate = '03-OCT-94';
+
+SELECT COUNT(DISTINCT city) FROM Customers;
+
+SELECT cnum, MIN(AMT) FROM Orders GROUP BY cnum;
+
+SELECT MIN(cname) FROM Customers WHERE cname LIKE 'G%';
+
+SELECT 'For' CONVERT(varchar(10), GETDATE(),120)) || 'there are' || COUNT(*) || 'Orders' FROM Orders GROUP BY Odate;
+
+SELECT Onum, snum, AMT, AMT * 0.12 AS 'Commission' FROM Orders ORDER BY snum;
+
+Select 'For the city (' || city || '), the highest rating is : (' || MAX(Rating) || ')'  FROM Customers  GROUP BY city;
+
+SELECT Odate, COUNT(Onum) AS 'Total No of Orders' FROM Orders GROUP BY Odate ORDER BY COUNT(Onum) DESC;
+
+SELECT sname, cname, S.city AS city FROM Salespeople AS S, Customers AS C WHERE S.city = C.city;
+
+SELECT cname, sname FROM Customers AS C, Salespeople AS S WHERE C.snum = S.snum;
+
+SELECT Onum, cname FROM Customers AS C, Orders AS O WHERE O.Cnum = C.cnum;
+
+SELECT Onum, sname, cname FROM Orders AS O, Customers AS C, Salespeople AS S WHERE O.cnum = C.cnum and O.snum = S.snum;
+
+SELECT cname, sname, comm FROM Customers AS C, Salespeople AS S WHERE comm > 0.12 AND C.snum = S.snum;
+
+SELECT sname, AMT*Comm, Rating FROM Customers AS C, SalesPeople AS S, Orders AS O WHERE Rating > 100 AND S.snum = C.snum AND S.snum = O.snum AND O.cnum = C.cnum;
+
+SELECT a.cname, b.cname, a.Rating FROM Customers a, Customers b WHERE a.Rating = b.Rating and a.cnum != b.cnum;
+
+SELECT a.cname, b.cname, a.Rating FROM Customers a, Customers b WHERE a.Rating = b.Rating AND a.cnum != b.cnum AND a.cnum < b.cnum;
+
+Select cname, sname FROM Salespeople, Customers WHERE sname IN  ( SELECT sname FROM salespeople WHERE rownum <= 3) ORDER BY cname;
+
+SELECT cname FROM Customers WHERE city IN ( SELECT City FROM Customers AS C, Orders AS O WHERE C.cnum = O.cnum AND  O.snum IN ( SELECT snum FROM Salespeople  WHERE Sname = 'Serres'));
+
+SELECT DISTINCT a.cname FROM Customers a ,Customers b WHERE a.snum = b.snum and a.cnum != b.cnum;
+
+SELECT a.sname, b.sname FROM Salespeople a, Salespeople b WHERE a.snum > b.snum AND a.city = b.city;
+
+SELECT c.cname, a.Onum, b.Onum FROM Orders a, Orders b, Customers c WHERE a.cnum = b.cnum AND a.Onum > b.Onum AND c.cnum = a.cnum;
+
+SELECT cname, city FROM Customers WHERE Rating = (SELECT Rating FROM Customers WHERE cname = 'Hoffman') AND cname != 'Hoffman';
+
+SELECT Onum FROM Orders WHERE snum = ( SELECT snum FROM Salespeople WHERE sname = 'Motika');
+
+SELECT Onum, sname, cname, AMT FROM Orders AS O, Salespeople AS S, Customers C WHERE O.snum = S.snum AND O.cnum = C.cnum AND O.snum = ( SELECT snum FROM Orders WHERE cnum = ( SELECT cnum FROM Customers WHERE cname = 'Hoffman'));
+
+SELECT * FROM Orders WHERE AMT > ( SELECT AVG(AMT) FROM Orders WHERE Odate = '03-OCT-94');
+
+SELECT AVG(comm) FROM Salespeople WHERE city = 'London';
+
+SELECT snum, cnum FROM Orders WHERE cnum IN (SELECT cnum FROM Customers WHERE city = 'London');
+
+SELECT comm FROM Salespeople WHERE snum IN (SELECT snum FROM Customers WHERE city = 'London');
+
+SELECT cnum, cname from Customers WHERE cnum > ( SELECT snum + 1000 FROM Salespeople WHERE sname = 'Serres');
